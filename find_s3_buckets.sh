@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TARGET="$1"
-RESULTS_DIR="./results"
+RESULTS_DIR="${2:-./results}"
 
 echo "[+] Finding S3 Buckets for $TARGET"
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TARGET="$1"
-RESULTS_DIR="./results"
+RESULTS_DIR="${2:-./results}"
 ALIVE_SUBDOMAINS="$RESULTS_DIR/alive_subdomains_for_js.txt"
 JS_FILES_OUTPUT="$RESULTS_DIR/js_files.txt"
 

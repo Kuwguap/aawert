@@ -1,128 +1,187 @@
-(Continuing the AAweRT Framework Implementation)
+# AAweRT - An Awesome Reconnaissance Tool
 
-Phase 10: Finding Login Endpoints (Bash Script)
+AAweRT is a comprehensive reconnaissance framework that automates various phases of security reconnaissance and vulnerability assessment. Each run creates a separate session folder for better organization and to avoid conflicts between different reconnaissance sessions.
 
-Create a script named find_login_endpoints.sh:
-Bash
+## Features
 
-#!/bin/bash
+- **Session-Based Organization**: Each run creates a separate timestamped folder for the target
+- **Phase 1**: Subdomain Enumeration (Subfinder, Amass, Assetfinder)
+- **Phase 2**: Live Subdomain Detection (httpx)
+- **Phase 3**: Subdomain Crawling (Katana, Hakrawler)
+- **Phase 4**: Parameter Discovery (gau)
+- **Phase 5**: Content Discovery (ffuf, dirsearch)
+- **Phase 6**: JavaScript File Extraction
+- **Phase 7**: Secret Finding in JavaScript (SecretFinder)
+- **Phase 8**: Vulnerability Scanning (Nuclei, Nikto)
+- **Phase 9**: S3 Bucket Discovery (s3scanner)
+- **Phase 10**: Login Endpoint Discovery
 
-TARGET="$1"
-RESULTS_DIR="./results"
-WORDLIST="/path/to/your/login_wordlist.txt" # Replace with your login wordlist path
+## Session Management
 
-echo "[+] Finding Login Endpoints for $TARGET"
+AAweRT creates organized session folders for each reconnaissance run:
 
-if [ ! -f "$RESULTS_DIR/live_subdomains.txt" ]; then
-  echo "Error: $RESULTS_DIR/live_subdomains.txt not found. Run live subdomain check first."
-  exit 1
-fi
+- **Single Domain**: `./results/example.com_20241201_143022/`
+- **Domain List**: `./results/domains_20241201_143022/`
+- **Wordlist**: `./results/wordlist_20241201_143022/`
 
-echo "  [+] Running ffuf for login paths on main domain..."
-ffuf -w "$WORDLIST" -u "https://$TARGET/FUZZ" -o "$RESULTS_DIR/ffuf_login_main.txt"
+Each session folder contains:
+- All scan results and output files
+- Session summary with metadata
+- Timestamped organization for easy tracking
 
-echo "  [+] Running dirsearch for login paths on main domain..."
-python3 dirsearch.py -u "https://$TARGET" -w "$WORDLIST" -o "$RESULTS_DIR/dirsearch_login_main.txt"
+## Prerequisites
 
-echo "  [+] Running ffuf for login paths on live subdomains..."
-cat "$RESULTS_DIR/live_subdomains.txt" | while read -r subdomain; do
-  echo "    [+] Running ffuf on https://$subdomain..."
-  ffuf -w "$WORDLIST" -u "https://$subdomain/FUZZ" -o "$RESULTS_DIR/ffuf_login_$subdomain.txt"
-done
+### Required Tools
 
-echo "  [+] Running dirsearch for login paths on live subdomains..."
-cat "$RESULTS_DIR/live_subdomains.txt" | while read -r subdomain; do
-  echo "    [+] Running dirsearch on https://$subdomain..."
-  python3 dirsearch.py -u "https://$subdomain" -w "$WORDLIST" -o "$RESULTS_DIR/dirsearch_login_$subdomain.txt"
-done
+Make sure you have the following tools installed and available in your PATH:
 
-echo "  [+] Grepping JavaScript files for login keywords..."
-grep -i -E '(login|signin|auth|password|username|api/auth)' "$RESULTS_DIR/js_files.txt" > "$RESULTS_DIR/login_endpoints_from_js.txt"
+- **subfinder** - Subdomain enumeration
+- **amass** - Network mapping and attack surface discovery
+- **assetfinder** - Subdomain enumeration
+- **httpx** - HTTP probe
+- **katana** - Web crawling
+- **hakrawler** - Web crawling
+- **gau** - URL discovery
+- **ffuf** - Web fuzzing
+- **dirsearch** - Directory and file discovery
+- **nuclei** - Vulnerability scanning
+- **nikto** - Web server scanner
+- **s3scanner** - S3 bucket discovery
+- **jq** - JSON processor
+- **python3** - Python interpreter
 
-echo "[+] Login Endpoint Finding Complete. Results in $RESULTS_DIR/"*login*.txt"
+### Wordlists
 
-How to Use:
-Bash
+Update the wordlist paths in the following scripts:
+- `content_discovery.sh` - Line 4: Update the directory wordlist path
+- `find_login_endpoints.sh` - Line 4: Update the login wordlist path
 
-chmod +x find_login_endpoints.sh
-./find_login_endpoints.sh example.com
+### SecretFinder
 
-Main Orchestration Script (aaweRT.sh):
+Update the SecretFinder path in `find_secrets.sh` - Line 4.
 
-Finally, let's create a main script to run all the phases sequentially:
-Bash
+## Installation
 
-#!/bin/bash
+1. Clone or download the repository
+2. Make all scripts executable:
+   ```bash
+   chmod +x *.sh
+   ```
+3. The results directory will be created automatically on first run
 
-TARGET="$1"
+## Usage
 
-if [ -z "$TARGET" ]; then
-  echo "Usage: ./aaweRT.sh <target_domain>"
-  exit 1
-fi
+### Single Domain
+```bash
+./aawert.sh example.com
+```
+Creates: `./results/example.com_20241201_143022/`
 
-echo "[+] Starting AAweRT - An Awesome Reconnaissance Tool for $TARGET"
-echo "================================================================"
+### Multiple Domains from File
+```bash
+./aawert.sh -l domains.txt
+```
+Creates: `./results/domains_20241201_143022/`
 
-echo "[+] Phase 1: Subdomain Enumeration"
-./subdomain_enumeration.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+### Using Custom Wordlist
+```bash
+./aawert.sh -w wordlist.txt
+```
+Creates: `./results/wordlist_20241201_143022/`
 
-echo "[+] Phase 2: Check Live Subdomains"
-./check_live_subdomains.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+## Session Output Structure
 
-echo "[+] Phase 3: Crawl Subdomains"
-./crawl_subdomains.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+Each session folder contains:
 
-echo "[+] Phase 4: Discover Parameters"
-./discover_parameters.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+```
+./results/example.com_20241201_143022/
+├── session_summary.txt          # Session metadata and summary
+├── all_subdomains.txt           # Combined subdomain enumeration results
+├── live_subdomains_target.txt   # Live subdomains with HTTP responses
+├── parameters.txt               # Discovered parameters
+├── js_files.txt                 # Extracted JavaScript files
+├── secretfinder_results.txt     # Secrets found in JavaScript files
+├── ffuf_*.txt                   # Content discovery results
+├── dirsearch_*.txt              # Directory enumeration results
+├── nuclei_*.txt                 # Vulnerability scan results
+├── nikto_*.txt                  # Web server scan results
+├── s3_buckets_*.txt             # S3 bucket discovery results
+└── *_error.log                  # Error logs from various tools
+```
 
-echo "[+] Phase 5: Content Discovery"
-./content_discovery.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+## Script Structure
 
-echo "[+] Phase 6: Extract JavaScript Files"
-./extract_js.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+- `aawert.sh` - Main orchestration script with session management
+- `check_live_subdomains.sh` - Phase 2: Live subdomain detection
+- `crawl_subdomains.sh` - Phase 3: Subdomain crawling
+- `discover_parameters.sh` - Phase 4: Parameter discovery
+- `content_discovery.sh` - Phase 5: Content discovery
+- `extract_js.sh` - Phase 6: JavaScript extraction
+- `find_secrets.sh` - Phase 7: Secret finding
+- `vulnerability_scan.sh` - Phase 8: Vulnerability scanning
+- `find_s3_buckets.sh` - Phase 9: S3 bucket discovery
+- `find_login_endpoints.sh` - Phase 10: Login endpoint discovery
 
-echo "[+] Phase 7: Find Secrets in JavaScript Files"
-./find_secrets.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+## Session Management Benefits
 
-echo "[+] Phase 8: Vulnerability Scan"
-./vulnerability_scan.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+- **No Conflicts**: Each run is isolated in its own folder
+- **Easy Tracking**: Timestamped folders for chronological organization
+- **Clean Organization**: All related files for a target are grouped together
+- **Multiple Targets**: Run reconnaissance on multiple targets simultaneously
+- **Historical Data**: Keep previous scan results for comparison
 
-echo "[+] Phase 9: Find S3 Buckets"
-./find_s3_buckets.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+## Error Handling
 
-echo "[+] Phase 10: Find Login Endpoints"
-./find_login_endpoints.sh "$TARGET"
-echo "--------------------------------------------------------------=="
+The framework includes comprehensive error handling:
+- File existence checks before processing
+- Empty file checks
+- Tool availability verification
+- Graceful failure handling
+- Session directory creation validation
 
-echo "[+] AAweRT Run Complete. Results are in the ./results directory."
+## Customization
 
-How to Use the Main Script:
-Bash
+You can customize the framework by:
+- Modifying wordlist paths in individual scripts
+- Adjusting tool parameters and options
+- Adding new reconnaissance phases
+- Modifying output formats
+- Changing session naming conventions
 
-chmod +x aaweRT.sh
-./aaweRT.sh example.com
+## Security Notes
 
-Important Notes:
+- Use this tool only on targets you have permission to test
+- Respect rate limits and terms of service
+- Be aware of legal implications in your jurisdiction
+- Consider the impact on target systems
+- Each session folder may contain sensitive information
 
-    Tool Installation: Ensure you have all the necessary tools (subfinder, amass, assetfinder, findomain, chaos-dns (optional CLI), httpx, katana, hakrawler, gau, ffuf, dirsearch, secret-finder, nuclei, nikto, s3scanner, cloudscraper, python3) installed and configured correctly in your system's PATH.
+## Troubleshooting
 
-    Wordlists: Replace /path/to/your/wordlist.txt and /path/to/your/login_wordlist.txt with the actual paths to your wordlists.
+### Common Issues
 
-    Nuclei Templates: Update /path/to/your/nuclei-templates to the correct location of your Nuclei template directory.
+1. **Tool not found**: Ensure all required tools are installed and in PATH
+2. **Permission denied**: Make sure scripts are executable (`chmod +x *.sh`)
+3. **Empty results**: Check if target domain is accessible and tools are working
+4. **Wordlist not found**: Update wordlist paths in the scripts
+5. **Session folder not created**: Check write permissions in the current directory
 
-    Permissions: Make sure all the scripts are executable using chmod +x <script_name>.sh.
-    Error Handling: These scripts provide basic functionality. For a more robust framework, you would need to add more comprehensive error handling.
+### Debug Mode
 
-    Customization: You can customize the tools, options, and workflows within these scripts to better suit your specific needs and targets.
-    
-    Go Implementation: While this implementation uses Bash to orchestrate existing Go tools, you could indeed build the entire framework in Go by using the Go libraries of these tools (if available) or by executing them as subprocesses and parsing their output within your Go code. This would offer more control and potentially better performance but would require significant Go programming effort.
+Add `set -x` at the beginning of any script to enable debug output.
+
+### Session Cleanup
+
+To clean up old sessions:
+```bash
+# Remove sessions older than 30 days
+find ./results -type d -mtime +30 -exec rm -rf {} \;
+```
+
+## Contributing
+
+Feel free to submit issues, feature requests, or pull requests to improve the framework.
+
+## License
+
+This tool is for educational and authorized security testing purposes only.

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TARGET="$1"
-RESULTS_DIR="./results"
+RESULTS_DIR="${2:-./results}"
 
 echo "[+] Checking Live Subdomains for $TARGET"
 
@@ -28,4 +28,4 @@ if [ -f "$RESULTS_DIR/http_probe_results.txt" ]; then
     done
 fi
 
-echo "[+] Live Subdomain Check Complete. Results in $RESULTS_DIR/live_subdomains.txt and $RESULTS_DIR/http_probe_results.txt"
+echo "[+] Live Subdomain Check Complete. Results in $RESULTS_DIR/live_subdomains_target.txt and $RESULTS_DIR/http_probe_results.txt"

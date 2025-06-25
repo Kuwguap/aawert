@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TARGET="$1"
-RESULTS_DIR="./results"
+RESULTS_DIR="${2:-./results}"
 SECRETFINDER_PATH="/home/kali/Desktop/Tools/SecretFinder/SecretFinder.py" # Replace with the actual path to SecretFinder.py
 OUTPUT_FILE="$RESULTS_DIR/secretfinder_results.txt"
 
