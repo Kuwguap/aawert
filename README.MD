@@ -1,3 +1,14 @@
+   ▄████████    ▄████████  ▄█     █▄     ▄████████    ▄████████     ███     
+  ███    ███   ███    ███ ███     ███   ███    ███   ███    ███ ▀█████████▄ 
+  ███    ███   ███    ███ ███     ███   ███    █▀    ███    ███    ▀███▀▀██ 
+  ███    ███   ███    ███ ███     ███  ▄███▄▄▄      ▄███▄▄▄▄██▀     ███   ▀ 
+▀███████████ ▀███████████ ███     ███ ▀▀███▀▀▀     ▀▀███▀▀▀▀▀       ███     
+  ███    ███   ███    ███ ███     ███   ███    █▄  ▀███████████     ███     
+  ███    ███   ███    ███ ███ ▄█▄ ███   ███    ███   ███    ███     ███     
+  ███    █▀    ███    █▀   ▀███▀███▀    ██████████   ███    ███    ▄████▀   
+                                                     ███    ███             
+      AAweRT - An Awesome Reconnaissance Tool
+
 # AAweRT - An Awesome Reconnaissance Tool
 
 A comprehensive reconnaissance framework that automates various phases of security reconnaissance and vulnerability assessment. Each run creates a separate session folder for better organization.
