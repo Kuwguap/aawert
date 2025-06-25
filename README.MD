@@ -9,7 +9,7 @@
   ███    █▀    ███    █▀   ▀███▀███▀    ██████████   ███    ███    ▄████▀   
                                                      ███    ███             
                                                              
-      AAweRT - An Awesome Reconnaissance Tool
+```
 
 # AAweRT - An Awesome Reconnaissance Tool
                                  
