@@ -5,6 +5,9 @@ A comprehensive reconnaissance framework that automates various phases of securi
 **Creator:** [github.com/kuwguap](https://github.com/kuwguap)  
 **Created under:** [RAWPA](https://rawpa.vercel.com)
 
+**Creator:** [kuwguap](https://github.com/kuwguap)  
+**Created under:** [RAWPA](https://rawpa.vercel.com)
+
 ## Features
 
 - **Session-Based Organization**: Each run creates a separate timestamped folder
