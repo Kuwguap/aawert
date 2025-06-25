@@ -5,12 +5,12 @@ RESULTS_DIR="./results"
 
 echo "[+] Discovering Parameters for $TARGET"
 
-if [ ! -f "$RESULTS_DIR/live_subdomains.txt" ]; then
-  echo "Error: $RESULTS_DIR/live_subdomains.txt not found. Run live subdomain check first."
+if [ ! -f "$RESULTS_DIR/all_subdomains.txt" ]; then
+  echo "Error: $RESULTS_DIR/all_subdomains.txt not found. Run live subdomain check first."
   exit 1
 fi
 
 echo "  [+] Running gau..."
-cat "$RESULTS_DIR/live_subdomains.txt" | gau > "$RESULTS_DIR/parameters.txt"
+cat "$RESULTS_DIR/all_subdomains.txt" | gau > "$RESULTS_DIR/parameters.txt"
 
 echo "[+] Parameter Discovery Complete. Results in $RESULTS_DIR/parameters.txt"

@@ -4,29 +4,25 @@ INPUT="$1"
 RESULTS_DIR="./results"
 
 if [ -z "$INPUT" ]; then
-  echo "Usage: ./aaweRT.sh <target_domain OR -l <url_list_file> OR -w <subdomain_wordlist_file>>"
+  echo "Usage: ./aaweRT.sh <target_domain OR -l <domain_list_file> OR -w <subdomain_wordlist_file>>"
   exit 1
 fi
 
 TARGET=""
-SUBDOMAIN_LIST_FILE=""
+DOMAIN_LIST_FILE=""
+SUBDOMAIN_WORDLIST_FILE=""
 
 case "$INPUT" in
   -l)
     if [ -z "$2" ]; then
-      echo "Usage: ./aaweRT.sh -l <url_list_file>"
+      echo "Usage: ./aaweRT.sh -l <domain_list_file>"
       exit 1
     fi
-    SUBDOMAIN_LIST_FILE="$2"
-    echo "[+] Using URL list from: $SUBDOMAIN_LIST_FILE"
+    DOMAIN_LIST_FILE="$2"
+    echo "[+] Using domain list from: $DOMAIN_LIST_FILE for enumeration."
     ;;
   -w)
-    if [ -z "$2" ]; then
-      echo "Usage: ./aaweRT.sh -w <subdomain_wordlist_file>"
-      exit 1
-    fi
-    SUBDOMAIN_LIST_FILE="$2"
-    echo "[+] Using subdomain wordlist from: $SUBDOMAIN_LIST_FILE"
+    # ... (wordlist handling) ...
     ;;
   *)
     TARGET="$INPUT"
@@ -37,17 +33,66 @@ esac
 echo "[+] Starting AAweRT - An Awesome Reconnaissance Tool"
 echo "================================================================"
 
-# Phase 1: Subdomain Enumeration (Conditional based on input)
+# Phase 1: Subdomain Enumeration (Run each tool for all domains)
+echo "[+] Phase 1: Subdomain Enumeration"
+#rm -f "$RESULTS_DIR/subfinder_results.txt"
+#rm -f "$RESULTS_DIR/amass_raw_output.txt"
+#rm -f "$RESULTS_DIR/amass_results.txt"
+#rm -f "$RESULTS_DIR/assetfinder_results.txt"
+#rm -f "$RESULTS_DIR/findomain_results.txt"
+#rm -f "$RESULTS_DIR/all_subdomains.txt" # Clear the final combined file
+
+DOMAINS_TO_ENUMERATE=()
+
 if [ -n "$TARGET" ]; then
-  echo "[+] Phase 1: Subdomain Enumeration"
-  ./subdomain_enumeration.sh "$TARGET"
-  echo "--------------------------------------------------------------=="
-  SUBDOMAIN_FILE="$RESULTS_DIR/all_subdomains.txt"
-elif [ -n "$SUBDOMAIN_LIST_FILE" ]; then
-  echo "[+] Skipping Subdomain Enumeration, using provided list."
-  cp "$SUBDOMAIN_LIST_FILE" "$RESULTS_DIR/all_subdomains.txt"
-  SUBDOMAIN_FILE="$RESULTS_DIR/all_subdomains.txt"
+  DOMAINS_TO_ENUMERATE+=("$TARGET")
+elif [ -n "$DOMAIN_LIST_FILE" ]; then
+  while IFS= read -r domain; do
+    DOMAINS_TO_ENUMERATE+=("$domain")
+  done < "$DOMAIN_LIST_FILE"
 fi
+
+# Run Subfinder for all domains
+echo "[+] Running Subfinder for all targets..."
+rm -f "$RESULTS_DIR/subfinder_results.txt" # Clear the file before the loop
+for domain in "${DOMAINS_TO_ENUMERATE[@]}"; do
+  echo "  [+] Scanning: $domain"
+  subfinder -d "$domain" -o "$RESULTS_DIR/subfinder_results.txt" -v 2>>"$RESULTS_DIR/subfinder_error.log" &
+done
+wait
+
+# Run Amass for all domains
+echo "[+] Running Amass for all targets..."
+rm -f "$RESULTS_DIR/amass_raw_output.txt" # Clear the file before the loop
+for domain in "${DOMAINS_TO_ENUMERATE[@]}"; do
+  echo "  [+] Scanning: $domain"
+  amass enum -d "$domain" -o "$RESULTS_DIR/amass_raw_output.txt" 2>>"$RESULTS_DIR/amass_error.log" &
+done
+wait
+
+# Process Amass output (once all Amass scans are done)
+echo "[+] Processing Amass output..."
+if [ -f "$RESULTS_DIR/amass_raw_output.txt" ]; then
+  cat "$RESULTS_DIR/amass_raw_output.txt" |
+    ( iconv -f ISO-8859-1 -t utf-8 || iconv -f UTF-8 -t utf-8 ) |
+    grep "(FQDN)" | cut -d '(' -f 1 | tr -d ' ' | sort -u > "$RESULTS_DIR/amass_results.txt"
+else
+  echo "  [!] Warning: Amass raw output file not found."
+fi
+
+# Run Assetfinder for all domains
+echo "[+] Running Assetfinder for all targets..."
+for domain in "${DOMAINS_TO_ENUMERATE[@]}"; do
+  echo "  [+] Scanning: $domain"
+  assetfinder "$domain" >> "$RESULTS_DIR/assetfinder_results.txt" 2>>"$RESULTS_DIR/assetfinder_error.log" &
+done
+wait
+
+# Combine and Deduplicate Subdomains
+echo "[+] Combining and Deduplicating Subdomains..."
+cat "$RESULTS_DIR/"*_results.txt | sort -u > "$RESULTS_DIR/all_subdomains.txt"
+
+echo "[+] Subdomain Enumeration Complete. Results in $RESULTS_DIR/all_subdomains.txt"
 
 # Phase 2: Check Live Subdomains
 if [ -f "$SUBDOMAIN_FILE" ]; then
