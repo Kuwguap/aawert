@@ -1,0 +1,30 @@
+{
+    "gemini_api_key": "AIzaSyByfQIA4lBPbasxkvpT87KV2WKkwW9sXLU",
+    "ai_model": "gemini-1.5-flash",
+    "ai_timeout": 300,
+    "analysis_settings": {
+      "max_tokens": 1000,
+      "temperature": 0.7,
+      "top_p": 0.9
+    },
+    "scan_timeouts": {
+      "subdomain_enumeration": 300,
+      "live_detection": 300,
+      "crawling": 300,
+      "parameter_discovery": 300,
+      "content_discovery": 300,
+      "js_extraction": 300,
+      "secret_finding": 300,
+      "vulnerability_scanning": 300,
+      "s3_discovery": 300,
+      "login_discovery": 300,
+      "screenshot_capture": 300,
+      "ai_analysis": 300
+    },
+    "ai_prompts": {
+      "subdomain_analysis": "Analyze these subdomain enumeration results and provide risk assessment, attack vectors, and recommendations.",
+      "js_analysis": "Analyze JavaScript files for security vulnerabilities and assess discovered secrets.",
+      "vuln_analysis": "Analyze vulnerability scan results and prioritize findings by severity.",
+      "comprehensive_report": "Generate a comprehensive security assessment report with executive summary and recommendations."
+    }
+  }
